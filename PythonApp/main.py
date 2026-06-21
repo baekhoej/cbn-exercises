@@ -16,12 +16,12 @@ def main():
     args = parser.parse_args()
 
     weather_raw = OpenMeteoClient().get_forecast(latitude=55.68, longitude=12.57)
-    weather_df = process_weather(weather_raw)
+    weather_data = process_weather(weather_raw)
 
     strava_raw = StravaClient().get_activities()
-    activities_df = process_activities(strava_raw)
+    activities_data = process_activities(strava_raw)
 
-    dashboard = build_dashboard(weather_df, activities_df)
+    dashboard = build_dashboard(weather_data, activities_data)
 
     if args.static:
         save_static(dashboard, path=args.output)
