@@ -4,6 +4,7 @@ pn.extension("tabulator")
 
 TABLE_COLUMNS = {
     "type": "Type",
+    "start_date_local": "Date",
     "location": "Location",
     "distance_km": "Distance (km)",
     "average_speed_kmh": "Avg Speed (km/h)",

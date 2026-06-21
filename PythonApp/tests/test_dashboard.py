@@ -46,6 +46,7 @@ def test_build_dashboard_table_contains_expected_columns():
         item for item in dashboard if isinstance(item, pn.widgets.Tabulator)
     )
     assert "Type" in tabulator.value.columns
+    assert "Date" in tabulator.value.columns
     assert "Location" in tabulator.value.columns
     assert "Distance (km)" in tabulator.value.columns
     assert "Avg Speed (km/h)" in tabulator.value.columns
