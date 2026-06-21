@@ -5,14 +5,14 @@ import hvplot.pandas  # registers .hvplot accessor on DataFrames
 pn.extension()
 
 
-def build_dashboard(weather_df: pd.DataFrame, activities_df: pd.DataFrame) -> pn.viewable.Viewable:
-    weather_plot = weather_df.hvplot.line(
+def build_dashboard(weatherDataFrame: pd.DataFrame, activitiesDataFrame: pd.DataFrame) -> pn.viewable.Viewable:
+    weather_plot = weatherDataFrame.hvplot.line(
         x="time", y="temperature_2m", title="Temperature forecast (°C)", responsive=True
-    ) if not weather_df.empty else pn.pane.Str("No weather data")
+    ) if not weatherDataFrame.empty else pn.pane.Str("No weather data")
 
-    activities_plot = activities_df.hvplot.bar(
+    activities_plot = activitiesDataFrame.hvplot.bar(
         x="start_date_local", y="distance_km", title="Activity distances (km)", responsive=True
-    ) if not activities_df.empty else pn.pane.Str("No activity data")
+    ) if not activitiesDataFrame.empty else pn.pane.Str("No activity data")
 
     return pn.Column(
         "# CBN Dashboard",

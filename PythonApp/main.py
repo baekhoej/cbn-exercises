@@ -15,13 +15,13 @@ def main():
     parser.add_argument("--output", default="dashboard.html", help="Output path for static export")
     args = parser.parse_args()
 
-    weather_raw = OpenMeteoClient().get_forecast(latitude=55.68, longitude=12.57)
-    weather_df = process_weather(weather_raw)
+    weatherRaw = OpenMeteoClient().get_forecast(latitude=55.68, longitude=12.57)
+    weatherDataFrame = process_weather(weatherRaw)
 
-    strava_raw = StravaClient().get_activities()
-    activities_df = process_activities(strava_raw)
+    stravaRaw = StravaClient().get_activities()
+    activitiesDataFrame = process_activities(stravaRaw)
 
-    dashboard = build_dashboard(weather_df, activities_df)
+    dashboard = build_dashboard(weatherDataFrame, activitiesDataFrame)
 
     if args.static:
         save_static(dashboard, path=args.output)
