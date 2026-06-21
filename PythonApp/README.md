@@ -88,7 +88,7 @@ Produces a self-contained `dashboard.html` with client-side interactivity (zoom,
 
 ## Coding Style
 
-- Do not use abbreviated variable names. The purpose of a variable should be readable from its name. Use snake_case as per PEP 8. For example, use `activities_data` instead of `df`, and `weather_data` instead of `weather_df`.
+- Do not use abbreviated variable names. The purpose of a variable should be readable from its name. Use snake_case as per PEP 8. For example, use `activities_data` instead of `df`, and `weather_data` instead of `weather_df`. Exception: universally established library import aliases such as `pd` (pandas), `np` (NumPy), and `pn` (Panel) are acceptable.
 
 ## Development Workflow
 
