@@ -37,7 +37,7 @@ def enrich_with_weather(activities_data: pd.DataFrame, openmeteo_client) -> pd.D
 
     for index, activity in enriched.iterrows():
         coords = activity["start_latlng"]
-        if not isinstance(coords, list):
+        if not isinstance(coords, list) or len(coords) < 2:
             continue
 
         lat, lon = coords[0], coords[1]

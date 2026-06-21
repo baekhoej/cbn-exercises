@@ -1,7 +1,5 @@
 import panel as pn
 import pandas as pd
-import hvplot.pandas  # registers .hvplot accessor on DataFrames
-
 pn.extension("tabulator")
 
 TABLE_COLUMNS = {
@@ -26,7 +24,7 @@ def _build_activities_table(activities_data: pd.DataFrame) -> pn.viewable.Viewab
         if row["location_city"]
         else (
             f"{row['start_latlng'][0]:.2f}, {row['start_latlng'][1]:.2f}"
-            if isinstance(row["start_latlng"], list)
+            if isinstance(row["start_latlng"], list) and len(row["start_latlng"]) >= 2
             else "—"
         ),
         axis=1,
@@ -39,21 +37,10 @@ def _build_activities_table(activities_data: pd.DataFrame) -> pn.viewable.Viewab
 
 
 def build_dashboard(weather_data: pd.DataFrame, activities_data: pd.DataFrame) -> pn.viewable.Viewable:
-    weather_plot = weather_data.hvplot.line(
-        x="time", y="temperature_2m", title="Temperature forecast (°C)", responsive=True
-    ) if not weather_data.empty else pn.pane.Str("No weather data")
-
-    activities_plot = activities_data.hvplot.bar(
-        x="start_date_local", y="distance_km", title="Activity distances (km)", responsive=True
-    ) if not activities_data.empty else pn.pane.Str("No activity data")
-
     return pn.Column(
         "# CBN Dashboard",
-        "## Weather",
-        weather_plot,
         "## Strava Activities",
         _build_activities_table(activities_data),
-        activities_plot,
     )
 
 
