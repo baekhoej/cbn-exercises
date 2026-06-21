@@ -79,13 +79,13 @@ def test_process_activities_indoor_no_latlng():
     assert activities_data["start_latlng"].iloc[0] is None
 
 
-def _make_weather_response(temperature=14.2, precipitation=0.0, windspeed=12.5):
+def _make_weather_response():
     return {
         "hourly": {
             "time": ["2024-06-01T07:00", "2024-06-01T08:00", "2024-06-01T09:00"],
-            "temperature_2m": [13.0, temperature, 15.0],
-            "precipitation": [0.0, precipitation, 0.1],
-            "windspeed_10m": [10.0, windspeed, 14.0],
+            "temperature_2m": [11.0, 14.2, 17.5],
+            "precipitation": [0.2, 0.0, 0.5],
+            "windspeed_10m": [8.0, 12.5, 20.0],
         }
     }
 
@@ -98,10 +98,11 @@ def test_enrich_with_weather_adds_columns():
     }]
     activities_data = process_activities(raw)
     mock_client = MagicMock()
-    mock_client.get_historical_weather.return_value = _make_weather_response(temperature=14.2, windspeed=12.5)
+    mock_client.get_historical_weather.return_value = _make_weather_response()
 
     enriched = enrich_with_weather(activities_data, mock_client)
 
+    # activity starts at 08:00 — matches index 1
     assert enriched["temperature_c"].iloc[0] == 14.2
     assert enriched["windspeed_kmh"].iloc[0] == 12.5
     assert enriched["precipitation_mm"].iloc[0] == 0.0
@@ -115,12 +116,12 @@ def test_enrich_with_weather_matches_nearest_hour():
     }]
     activities_data = process_activities(raw)
     mock_client = MagicMock()
-    mock_client.get_historical_weather.return_value = _make_weather_response(temperature=15.0)
+    mock_client.get_historical_weather.return_value = _make_weather_response()
 
     enriched = enrich_with_weather(activities_data, mock_client)
 
-    # 08:45 is closest to 09:00 (index 2), which has temperature 15.0
-    assert enriched["temperature_c"].iloc[0] == 15.0
+    # 08:45 is closer to 09:00 (index 2, temp=17.5) than 08:00 (index 1, temp=14.2)
+    assert enriched["temperature_c"].iloc[0] == 17.5
 
 
 def test_enrich_with_weather_skips_indoor_activities():
