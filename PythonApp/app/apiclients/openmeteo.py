@@ -23,7 +23,7 @@ class OpenMeteoClient:
             "longitude": longitude,
             "start_date": date_str,
             "end_date": date_str,
-            "hourly": "temperature_2m,precipitation,windspeed_10m",
+            "hourly": "temperature_2m,precipitation,windspeed_10m,cloudcover",
         }
         response = requests.get(self.ARCHIVE_URL, params=params, timeout=10)
         response.raise_for_status()

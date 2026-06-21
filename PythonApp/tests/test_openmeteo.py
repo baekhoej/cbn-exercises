@@ -27,6 +27,7 @@ def test_get_historical_weather_sends_correct_params():
     assert "temperature_2m" in params["hourly"]
     assert "precipitation" in params["hourly"]
     assert "windspeed_10m" in params["hourly"]
+    assert "cloudcover" in params["hourly"]
 
 
 def test_get_historical_weather_returns_hourly_fields():

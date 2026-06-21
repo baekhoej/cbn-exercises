@@ -34,6 +34,7 @@ def enrich_with_weather(activities_data: pd.DataFrame, openmeteo_client) -> pd.D
     enriched["temperature_c"] = None
     enriched["precipitation_mm"] = None
     enriched["windspeed_kmh"] = None
+    enriched["cloudcover_pct"] = None
 
     for index, activity in enriched.iterrows():
         coords = activity["start_latlng"]
@@ -53,5 +54,6 @@ def enrich_with_weather(activities_data: pd.DataFrame, openmeteo_client) -> pd.D
         enriched.at[index, "temperature_c"] = hourly["temperature_2m"][closest_index]
         enriched.at[index, "precipitation_mm"] = hourly["precipitation"][closest_index]
         enriched.at[index, "windspeed_kmh"] = hourly["windspeed_10m"][closest_index]
+        enriched.at[index, "cloudcover_pct"] = hourly["cloudcover"][closest_index]
 
     return enriched

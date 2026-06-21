@@ -1,6 +1,6 @@
 import pandas as pd
 import panel as pn
-from app.dashboard.server import build_dashboard
+from app.dashboard.server import build_dashboard, _weather_icon
 
 
 def _make_enriched_activities():
@@ -16,6 +16,7 @@ def _make_enriched_activities():
         "location_country": "Denmark",
         "temperature_c": 14.2,
         "precipitation_mm": 0.0,
+        "cloudcover_pct": 30,
         "windspeed_kmh": 12.5,
     }])
 
@@ -47,9 +48,35 @@ def test_build_dashboard_table_contains_expected_columns():
     )
     assert "Type" in tabulator.value.columns
     assert "Date" in tabulator.value.columns
+    assert "Weather" in tabulator.value.columns
     assert "Location" in tabulator.value.columns
     assert "Distance (km)" in tabulator.value.columns
     assert "Avg Speed (km/h)" in tabulator.value.columns
     assert "Temp (°C)" in tabulator.value.columns
     assert "Precipitation (mm)" in tabulator.value.columns
     assert "Wind (km/h)" in tabulator.value.columns
+
+
+def test_weather_icon_sunny():
+    assert _weather_icon(0.0, 10, 15.0) == "☀️"
+
+def test_weather_icon_mostly_sunny():
+    assert _weather_icon(0.0, 30, 15.0) == "🌤️"
+
+def test_weather_icon_partly_cloudy():
+    assert _weather_icon(0.0, 60, 15.0) == "⛅"
+
+def test_weather_icon_overcast():
+    assert _weather_icon(0.0, 85, 15.0) == "☁️"
+
+def test_weather_icon_drizzle():
+    assert _weather_icon(0.6, 90, 12.0) == "🌦️"
+
+def test_weather_icon_heavy_rain():
+    assert _weather_icon(3.0, 100, 10.0) == "🌧️"
+
+def test_weather_icon_snow():
+    assert _weather_icon(1.5, 100, -1.0) == "🌨️"
+
+def test_weather_icon_no_data():
+    assert _weather_icon(None, None, None) == "—"

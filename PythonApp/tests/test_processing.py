@@ -86,6 +86,7 @@ def _make_weather_response():
             "temperature_2m": [11.0, 14.2, 17.5],
             "precipitation": [0.2, 0.0, 0.5],
             "windspeed_10m": [8.0, 12.5, 20.0],
+            "cloudcover": [90, 30, 60],
         }
     }
 
@@ -106,6 +107,7 @@ def test_enrich_with_weather_adds_columns():
     assert enriched["temperature_c"].iloc[0] == 14.2
     assert enriched["windspeed_kmh"].iloc[0] == 12.5
     assert enriched["precipitation_mm"].iloc[0] == 0.0
+    assert enriched["cloudcover_pct"].iloc[0] == 30
 
 
 def test_enrich_with_weather_matches_nearest_hour():
