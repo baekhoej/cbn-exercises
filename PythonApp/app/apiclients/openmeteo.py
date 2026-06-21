@@ -25,6 +25,6 @@ class OpenMeteoClient:
             "end_date": date_str,
             "hourly": "temperature_2m,precipitation,windspeed_10m,cloudcover",
         }
-        response = requests.get(self.ARCHIVE_URL, params=params, timeout=10)
+        response = requests.get(self.ARCHIVE_URL, params=params, timeout=30)
         response.raise_for_status()
         return response.json()
