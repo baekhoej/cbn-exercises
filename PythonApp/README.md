@@ -97,7 +97,8 @@ The development workflow for this project should follow these steps, in order:
 1. Create a feature branch with name features/issue-123 (where 123 is replaced with the actual issue number)
 2. Implement the feature as described
 3. Run and check all relevant tests
-4. Create a pull request for the issue
-5. Manual review of pull request
-6. Add any changes found in the review
-7. Squash merge pull request into master
+4. Run `python main.py` and verify the application works end-to-end in the browser
+5. Create a pull request for the issue
+6. Manual review of pull request
+7. Add any changes found in the review
+8. Squash merge pull request into master
