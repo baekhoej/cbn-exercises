@@ -88,7 +88,7 @@ Produces a self-contained `dashboard.html` with client-side interactivity (zoom,
 
 ## Coding Style
 
-- Do not use abbreviated variable names. The purpose of a variable should be readable from its name. For example, use `activitiesDataFrame` instead of `df`, and `weatherDataFrame` instead of `weather_df`.
+- Do not use abbreviated variable names. The purpose of a variable should be readable from its name. Use snake_case as per PEP 8. For example, use `activities_data` instead of `df`, and `weather_data` instead of `weather_df`.
 
 ## Development Workflow
 

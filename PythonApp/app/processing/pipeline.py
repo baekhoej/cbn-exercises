@@ -9,19 +9,19 @@ def process_weather(raw: dict) -> pd.DataFrame:
 def process_activities(raw: list[dict]) -> pd.DataFrame:
     if not raw:
         return pd.DataFrame()
-    activitiesDataFrame = pd.DataFrame(raw)
+    activities_data = pd.DataFrame(raw)
     keep = [
         "name", "type", "start_date_local", "distance", "moving_time",
         "total_elevation_gain", "average_speed", "start_latlng",
         "location_city", "location_country",
     ]
-    activitiesDataFrame = activitiesDataFrame[[c for c in keep if c in activitiesDataFrame.columns]].copy()
+    activities_data = activities_data[[c for c in keep if c in activities_data.columns]].copy()
     for col in ["location_city", "location_country", "start_latlng"]:
-        if col not in activitiesDataFrame.columns:
-            activitiesDataFrame[col] = None
-    activitiesDataFrame["distance_km"] = activitiesDataFrame["distance"] / 1000
-    activitiesDataFrame["duration_min"] = activitiesDataFrame["moving_time"] / 60
-    activitiesDataFrame["start_date_local"] = pd.to_datetime(activitiesDataFrame["start_date_local"])
-    if "average_speed" in activitiesDataFrame.columns:
-        activitiesDataFrame["average_speed_kmh"] = activitiesDataFrame["average_speed"] * 3.6
-    return activitiesDataFrame
+        if col not in activities_data.columns:
+            activities_data[col] = None
+    activities_data["distance_km"] = activities_data["distance"] / 1000
+    activities_data["duration_min"] = activities_data["moving_time"] / 60
+    activities_data["start_date_local"] = pd.to_datetime(activities_data["start_date_local"])
+    if "average_speed" in activities_data.columns:
+        activities_data["average_speed_kmh"] = activities_data["average_speed"] * 3.6
+    return activities_data
