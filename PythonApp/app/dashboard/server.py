@@ -1,3 +1,4 @@
+import datetime
 import panel as pn
 import pandas as pd
 
@@ -69,8 +70,10 @@ def _build_activities_table(activities_data: pd.DataFrame) -> pn.viewable.Viewab
 
 
 def build_dashboard(weather_data: pd.DataFrame, activities_data: pd.DataFrame) -> pn.viewable.Viewable:
+    updated_at = datetime.datetime.now(datetime.timezone.utc).strftime("%-d %B %Y at %H:%M UTC")
     return pn.Column(
         "# CBN Dashboard",
+        f"*Last updated: {updated_at}*",
         "## Strava Activities",
         _build_activities_table(activities_data),
     )
