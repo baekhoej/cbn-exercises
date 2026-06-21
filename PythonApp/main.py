@@ -5,7 +5,7 @@ load_dotenv()
 
 from app.apiclients.openmeteo import OpenMeteoClient
 from app.apiclients.strava import StravaClient
-from app.processing.pipeline import process_weather, process_activities
+from app.processing.pipeline import process_weather, process_activities, enrich_with_weather
 from app.dashboard.server import build_dashboard, save_static
 
 
@@ -18,8 +18,11 @@ def main():
     weather_raw = OpenMeteoClient().get_forecast(latitude=55.68, longitude=12.57)
     weather_data = process_weather(weather_raw)
 
+    openmeteo_client = OpenMeteoClient()
+
     strava_raw = StravaClient().get_activities()
     activities_data = process_activities(strava_raw)
+    activities_data = enrich_with_weather(activities_data, openmeteo_client)
 
     dashboard = build_dashboard(weather_data, activities_data)
 
