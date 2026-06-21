@@ -1,4 +1,5 @@
 import datetime
+import time
 import requests
 
 
@@ -16,7 +17,7 @@ class OpenMeteoClient:
         response.raise_for_status()
         return response.json()
 
-    def get_historical_weather(self, latitude: float, longitude: float, date: datetime.date) -> dict:
+    def get_historical_weather(self, latitude: float, longitude: float, date: datetime.date, retries: int = 3) -> dict:
         date_str = date.strftime("%Y-%m-%d")
         params = {
             "latitude": latitude,
@@ -25,6 +26,14 @@ class OpenMeteoClient:
             "end_date": date_str,
             "hourly": "temperature_2m,precipitation,windspeed_10m,cloudcover",
         }
-        response = requests.get(self.ARCHIVE_URL, params=params, timeout=30)
-        response.raise_for_status()
-        return response.json()
+        last_error: Exception
+        for attempt in range(retries):
+            try:
+                response = requests.get(self.ARCHIVE_URL, params=params, timeout=30)
+                response.raise_for_status()
+                return response.json()
+            except Exception as error:
+                last_error = error
+                if attempt < retries - 1:
+                    time.sleep(2 ** attempt)
+        raise last_error

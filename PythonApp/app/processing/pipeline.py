@@ -47,10 +47,7 @@ def enrich_with_weather(activities_data: pd.DataFrame, openmeteo_client) -> pd.D
 
         lat, lon = coords[0], coords[1]
         activity_date = activity["start_date_local"].date()
-        try:
-            historical_weather = openmeteo_client.get_historical_weather(lat, lon, activity_date)
-        except Exception:
-            continue
+        historical_weather = openmeteo_client.get_historical_weather(lat, lon, activity_date)
 
         hourly = historical_weather.get("hourly", {})
         times = pd.to_datetime(hourly.get("time", []))
