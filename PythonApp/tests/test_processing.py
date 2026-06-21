@@ -187,6 +187,36 @@ def test_enrich_with_weather_skips_indoor_activities():
     assert enriched["windspeed_kmh"].iloc[0] is None
 
 
+def test_enrich_with_weather_skips_activities_too_old_for_api():
+    raw = [{
+        "name": "Old Run", "type": "Run", "start_date_local": "2020-01-01T08:00:00Z",
+        "distance": 10000, "moving_time": 3600, "average_speed": 2.778,
+        "start_latlng": [55.68, 12.57],
+    }]
+    activities_data = process_activities(raw)
+    mock_client = MagicMock()
+    mock_client.get_historical_weather.side_effect = ValueError("beyond the 92-day limit")
+
+    result = enrich_with_weather(activities_data, mock_client)
+
+    assert result["temperature_c"].isna().all()
+
+
+def test_enrich_with_weather_propagates_network_errors():
+    import pytest
+    raw = [{
+        "name": "Run", "type": "Run", "start_date_local": "2024-06-01T08:00:00Z",
+        "distance": 10000, "moving_time": 3600, "average_speed": 2.778,
+        "start_latlng": [55.68, 12.57],
+    }]
+    activities_data = process_activities(raw)
+    mock_client = MagicMock()
+    mock_client.get_historical_weather.side_effect = ConnectionError("timeout")
+
+    with pytest.raises(ConnectionError):
+        enrich_with_weather(activities_data, mock_client)
+
+
 def test_enrich_with_weather_calls_api_once_per_outdoor_activity():
     raw = [
         {
