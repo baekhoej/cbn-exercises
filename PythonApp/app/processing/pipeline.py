@@ -12,6 +12,10 @@ def process_activities(raw: list[dict]) -> pd.DataFrame:
     if not raw:
         return pd.DataFrame()
     activities_data = pd.DataFrame(raw)
+    if "visibility" in activities_data.columns:
+        activities_data = activities_data[activities_data["visibility"] != "only_me"]
+    if activities_data.empty:
+        return pd.DataFrame()
     keep = [
         "name", "type", "start_date_local", "distance", "moving_time",
         "total_elevation_gain", "average_speed", "start_latlng",

@@ -68,6 +68,50 @@ def test_process_activities_missing_location_fields_are_none():
     assert activities_data["start_latlng"].iloc[0] is None
 
 
+def test_process_activities_excludes_only_me():
+    raw = [
+        {"name": "Public Run", "type": "Run", "start_date_local": "2024-01-01T08:00:00Z",
+         "distance": 5000, "moving_time": 1800, "visibility": "everyone"},
+        {"name": "Private Run", "type": "Run", "start_date_local": "2024-01-01T09:00:00Z",
+         "distance": 3000, "moving_time": 1200, "visibility": "only_me"},
+    ]
+    activities_data = process_activities(raw)
+    assert len(activities_data) == 1
+    assert activities_data["name"].iloc[0] == "Public Run"
+
+
+def test_process_activities_includes_everyone():
+    raw = [{"name": "Run", "type": "Run", "start_date_local": "2024-01-01T08:00:00Z",
+            "distance": 5000, "moving_time": 1800, "visibility": "everyone"}]
+    activities_data = process_activities(raw)
+    assert len(activities_data) == 1
+
+
+def test_process_activities_includes_followers_only():
+    raw = [{"name": "Run", "type": "Run", "start_date_local": "2024-01-01T08:00:00Z",
+            "distance": 5000, "moving_time": 1800, "visibility": "followers_only"}]
+    activities_data = process_activities(raw)
+    assert len(activities_data) == 1
+
+
+def test_process_activities_all_only_me_returns_empty():
+    raw = [
+        {"name": "Private Run", "type": "Run", "start_date_local": "2024-01-01T08:00:00Z",
+         "distance": 5000, "moving_time": 1800, "visibility": "only_me"},
+        {"name": "Private Ride", "type": "Ride", "start_date_local": "2024-01-02T08:00:00Z",
+         "distance": 20000, "moving_time": 3600, "visibility": "only_me"},
+    ]
+    activities_data = process_activities(raw)
+    assert activities_data.empty
+
+
+def test_process_activities_no_visibility_field_includes_all():
+    raw = [{"name": "Run", "type": "Run", "start_date_local": "2024-01-01T08:00:00Z",
+            "distance": 5000, "moving_time": 1800}]
+    activities_data = process_activities(raw)
+    assert len(activities_data) == 1
+
+
 def test_process_activities_indoor_no_latlng():
     raw = [{
         "name": "Indoor Ride", "type": "VirtualRide",
