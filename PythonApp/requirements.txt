@@ -1,0 +1,6 @@
+requests
+pandas
+panel
+hvplot
+python-dotenv
+pytest
