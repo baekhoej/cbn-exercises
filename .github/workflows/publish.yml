@@ -17,14 +17,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build hello world page
-        run: |
-          mkdir -p dist
-          echo '<html><body><h1>Hello World</h1></body></html>' > dist/index.html
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+        working-directory: PythonApp
+
+      - name: Generate static dashboard
+        env:
+          STRAVA_CLIENT_ID: ${{ secrets.STRAVA_CLIENT_ID }}
+          STRAVA_CLIENT_SECRET: ${{ secrets.STRAVA_CLIENT_SECRET }}
+          STRAVA_REFRESH_TOKEN: ${{ secrets.STRAVA_REFRESH_TOKEN }}
+        run: python main.py --static --output dist/index.html
+        working-directory: PythonApp
 
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: dist/
+          path: PythonApp/dist/
 
       - id: deployment
         uses: actions/deploy-pages@v4
