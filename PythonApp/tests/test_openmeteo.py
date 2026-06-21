@@ -52,5 +52,25 @@ def test_get_historical_weather_propagates_http_errors():
     mock_response.raise_for_status.side_effect = Exception("503 Service Unavailable")
     date = datetime.date(2024, 6, 1)
     with patch("app.apiclients.openmeteo.requests.get", return_value=mock_response):
-        with pytest.raises(Exception, match="503"):
+        with patch("app.apiclients.openmeteo.time.sleep"):
+            with pytest.raises(Exception, match="503"):
+                OpenMeteoClient().get_historical_weather(55.68, 12.57, date)
+
+
+def test_get_historical_weather_retries_on_failure():
+    good_response = MagicMock()
+    good_response.json.return_value = {"hourly": {}}
+    date = datetime.date(2024, 6, 1)
+    with patch("app.apiclients.openmeteo.requests.get", side_effect=[Exception("timeout"), good_response]) as mock_get:
+        with patch("app.apiclients.openmeteo.time.sleep"):
             OpenMeteoClient().get_historical_weather(55.68, 12.57, date)
+    assert mock_get.call_count == 2
+
+
+def test_get_historical_weather_raises_after_all_retries_exhausted():
+    date = datetime.date(2024, 6, 1)
+    with patch("app.apiclients.openmeteo.requests.get", side_effect=Exception("timeout")) as mock_get:
+        with patch("app.apiclients.openmeteo.time.sleep"):
+            with pytest.raises(Exception, match="timeout"):
+                OpenMeteoClient().get_historical_weather(55.68, 12.57, date, retries=3)
+    assert mock_get.call_count == 3
