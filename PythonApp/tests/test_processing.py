@@ -1,4 +1,5 @@
-from app.processing.pipeline import process_weather, process_activities
+from unittest.mock import MagicMock
+from app.processing.pipeline import process_weather, process_activities, enrich_with_weather
 
 
 def test_process_weather_returns_dataframe():
@@ -76,3 +77,90 @@ def test_process_activities_indoor_no_latlng():
     activities_data = process_activities(raw)
     assert not activities_data.empty
     assert activities_data["start_latlng"].iloc[0] is None
+
+
+def _make_weather_response(temperature=14.2, precipitation=0.0, windspeed=12.5):
+    return {
+        "hourly": {
+            "time": ["2024-06-01T07:00", "2024-06-01T08:00", "2024-06-01T09:00"],
+            "temperature_2m": [13.0, temperature, 15.0],
+            "precipitation": [0.0, precipitation, 0.1],
+            "windspeed_10m": [10.0, windspeed, 14.0],
+        }
+    }
+
+
+def test_enrich_with_weather_adds_columns():
+    raw = [{
+        "name": "Run", "type": "Run", "start_date_local": "2024-06-01T08:00:00Z",
+        "distance": 10000, "moving_time": 3600, "average_speed": 2.778,
+        "start_latlng": [55.68, 12.57],
+    }]
+    activities_data = process_activities(raw)
+    mock_client = MagicMock()
+    mock_client.get_historical_weather.return_value = _make_weather_response(temperature=14.2, windspeed=12.5)
+
+    enriched = enrich_with_weather(activities_data, mock_client)
+
+    assert enriched["temperature_c"].iloc[0] == 14.2
+    assert enriched["windspeed_kmh"].iloc[0] == 12.5
+    assert enriched["precipitation_mm"].iloc[0] == 0.0
+
+
+def test_enrich_with_weather_matches_nearest_hour():
+    raw = [{
+        "name": "Run", "type": "Run", "start_date_local": "2024-06-01T08:45:00Z",
+        "distance": 10000, "moving_time": 3600, "average_speed": 2.778,
+        "start_latlng": [55.68, 12.57],
+    }]
+    activities_data = process_activities(raw)
+    mock_client = MagicMock()
+    mock_client.get_historical_weather.return_value = _make_weather_response(temperature=15.0)
+
+    enriched = enrich_with_weather(activities_data, mock_client)
+
+    # 08:45 is closest to 09:00 (index 2), which has temperature 15.0
+    assert enriched["temperature_c"].iloc[0] == 15.0
+
+
+def test_enrich_with_weather_skips_indoor_activities():
+    raw = [{
+        "name": "Indoor Ride", "type": "VirtualRide",
+        "start_date_local": "2024-06-01T08:00:00Z",
+        "distance": 20000, "moving_time": 2400, "average_speed": 8.33,
+    }]
+    activities_data = process_activities(raw)
+    mock_client = MagicMock()
+
+    enriched = enrich_with_weather(activities_data, mock_client)
+
+    mock_client.get_historical_weather.assert_not_called()
+    assert enriched["temperature_c"].iloc[0] is None
+    assert enriched["precipitation_mm"].iloc[0] is None
+    assert enriched["windspeed_kmh"].iloc[0] is None
+
+
+def test_enrich_with_weather_calls_api_once_per_outdoor_activity():
+    raw = [
+        {
+            "name": "Morning Run", "type": "Run", "start_date_local": "2024-06-01T08:00:00Z",
+            "distance": 10000, "moving_time": 3600, "average_speed": 2.778,
+            "start_latlng": [55.68, 12.57],
+        },
+        {
+            "name": "Indoor Ride", "type": "VirtualRide", "start_date_local": "2024-06-01T10:00:00Z",
+            "distance": 20000, "moving_time": 2400, "average_speed": 8.33,
+        },
+        {
+            "name": "Evening Run", "type": "Run", "start_date_local": "2024-06-01T18:00:00Z",
+            "distance": 5000, "moving_time": 1800, "average_speed": 2.778,
+            "start_latlng": [55.70, 12.60],
+        },
+    ]
+    activities_data = process_activities(raw)
+    mock_client = MagicMock()
+    mock_client.get_historical_weather.return_value = _make_weather_response()
+
+    enrich_with_weather(activities_data, mock_client)
+
+    assert mock_client.get_historical_weather.call_count == 2
