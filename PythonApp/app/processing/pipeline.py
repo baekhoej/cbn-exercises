@@ -1,3 +1,5 @@
+import datetime
+
 import pandas as pd
 
 
@@ -25,3 +27,31 @@ def process_activities(raw: list[dict]) -> pd.DataFrame:
     if "average_speed" in activities_data.columns:
         activities_data["average_speed_kmh"] = activities_data["average_speed"] * 3.6
     return activities_data
+
+
+def enrich_with_weather(activities_data: pd.DataFrame, openmeteo_client) -> pd.DataFrame:
+    enriched = activities_data.copy()
+    enriched["temperature_c"] = None
+    enriched["precipitation_mm"] = None
+    enriched["windspeed_kmh"] = None
+
+    for index, activity in enriched.iterrows():
+        coords = activity["start_latlng"]
+        if not isinstance(coords, list):
+            continue
+
+        lat, lon = coords[0], coords[1]
+        activity_date = activity["start_date_local"].date()
+        historical_weather = openmeteo_client.get_historical_weather(lat, lon, activity_date)
+
+        hourly = historical_weather.get("hourly", {})
+        times = pd.to_datetime(hourly.get("time", []))
+        if len(times) == 0:
+            continue
+
+        closest_index = (times - activity["start_date_local"].tz_localize(None)).to_series().abs().argmin()
+        enriched.at[index, "temperature_c"] = hourly["temperature_2m"][closest_index]
+        enriched.at[index, "precipitation_mm"] = hourly["precipitation"][closest_index]
+        enriched.at[index, "windspeed_kmh"] = hourly["windspeed_10m"][closest_index]
+
+    return enriched
