@@ -31,7 +31,9 @@ jobs:
           STRAVA_CLIENT_SECRET: ${{ secrets.STRAVA_CLIENT_SECRET }}
           STRAVA_REFRESH_TOKEN: ${{ secrets.STRAVA_REFRESH_TOKEN }}
           VISUAL_CROSSING_API_KEY: ${{ secrets.VISUAL_CROSSING_API_KEY }}
-        run: python main.py --static --output dist/index.html
+        run: |
+          mkdir -p dist
+          python main.py --static --output dist/index.html
         working-directory: PythonApp
 
       - uses: actions/upload-pages-artifact@v3
