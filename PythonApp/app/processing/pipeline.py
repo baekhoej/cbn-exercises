@@ -33,7 +33,7 @@ def process_activities(raw: list[dict]) -> pd.DataFrame:
     return activities_data
 
 
-def enrich_with_weather(activities_data: pd.DataFrame, openmeteo_client) -> pd.DataFrame:
+def enrich_with_weather(activities_data: pd.DataFrame, openmeteo_client, fallback_client=None) -> pd.DataFrame:
     enriched = activities_data.copy()
     enriched["temperature_c"] = None
     enriched["precipitation_mm"] = None
@@ -51,6 +51,13 @@ def enrich_with_weather(activities_data: pd.DataFrame, openmeteo_client) -> pd.D
             historical_weather = openmeteo_client.get_historical_weather(lat, lon, activity_date)
         except ValueError:
             continue
+        except Exception:
+            if fallback_client is None:
+                continue
+            try:
+                historical_weather = fallback_client.get_historical_weather(lat, lon, activity_date)
+            except Exception:
+                continue
 
         hourly = historical_weather.get("hourly", {})
         times = pd.to_datetime(hourly.get("time", []))

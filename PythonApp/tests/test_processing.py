@@ -202,8 +202,7 @@ def test_enrich_with_weather_skips_activities_too_old_for_api():
     assert result["temperature_c"].isna().all()
 
 
-def test_enrich_with_weather_propagates_network_errors():
-    import pytest
+def test_enrich_with_weather_skips_gracefully_when_primary_fails_and_no_fallback():
     raw = [{
         "name": "Run", "type": "Run", "start_date_local": "2024-06-01T08:00:00Z",
         "distance": 10000, "moving_time": 3600, "average_speed": 2.778,
@@ -213,8 +212,44 @@ def test_enrich_with_weather_propagates_network_errors():
     mock_client = MagicMock()
     mock_client.get_historical_weather.side_effect = ConnectionError("timeout")
 
-    with pytest.raises(ConnectionError):
-        enrich_with_weather(activities_data, mock_client)
+    result = enrich_with_weather(activities_data, mock_client)
+
+    assert result["temperature_c"].isna().all()
+
+
+def test_enrich_with_weather_uses_fallback_when_primary_fails():
+    raw = [{
+        "name": "Run", "type": "Run", "start_date_local": "2024-06-01T08:00:00Z",
+        "distance": 10000, "moving_time": 3600, "average_speed": 2.778,
+        "start_latlng": [55.68, 12.57],
+    }]
+    activities_data = process_activities(raw)
+    primary = MagicMock()
+    primary.get_historical_weather.side_effect = ConnectionError("timeout")
+    fallback = MagicMock()
+    fallback.get_historical_weather.return_value = _make_weather_response()
+
+    result = enrich_with_weather(activities_data, primary, fallback_client=fallback)
+
+    fallback.get_historical_weather.assert_called_once()
+    assert result["temperature_c"].notna().any()
+
+
+def test_enrich_with_weather_skips_gracefully_when_both_clients_fail():
+    raw = [{
+        "name": "Run", "type": "Run", "start_date_local": "2024-06-01T08:00:00Z",
+        "distance": 10000, "moving_time": 3600, "average_speed": 2.778,
+        "start_latlng": [55.68, 12.57],
+    }]
+    activities_data = process_activities(raw)
+    primary = MagicMock()
+    primary.get_historical_weather.side_effect = ConnectionError("timeout")
+    fallback = MagicMock()
+    fallback.get_historical_weather.side_effect = ConnectionError("timeout")
+
+    result = enrich_with_weather(activities_data, primary, fallback_client=fallback)
+
+    assert result["temperature_c"].isna().all()
 
 
 def test_enrich_with_weather_calls_api_once_per_outdoor_activity():
