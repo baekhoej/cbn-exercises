@@ -1,10 +1,12 @@
 import argparse
+import os
 from dotenv import load_dotenv
 
 load_dotenv()
 
 from app.apiclients.openmeteo import OpenMeteoClient
 from app.apiclients.strava import StravaClient
+from app.apiclients.visualcrossing import VisualCrossingClient
 from app.processing.pipeline import process_weather, process_activities, enrich_with_weather
 from app.dashboard.server import build_dashboard, save_static
 
@@ -19,10 +21,11 @@ def main():
     weather_data = process_weather(weather_raw)
 
     openmeteo_client = OpenMeteoClient()
+    fallback_client = VisualCrossingClient() if os.getenv("VISUAL_CROSSING_API_KEY") else None
 
     strava_raw = StravaClient().get_activities()
     activities_data = process_activities(strava_raw)
-    activities_data = enrich_with_weather(activities_data, openmeteo_client)
+    activities_data = enrich_with_weather(activities_data, openmeteo_client, fallback_client=fallback_client)
 
     dashboard = build_dashboard(weather_data, activities_data)
 
