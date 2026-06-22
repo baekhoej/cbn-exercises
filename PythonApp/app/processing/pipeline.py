@@ -47,8 +47,9 @@ def enrich_with_weather(activities_data: pd.DataFrame, openmeteo_client, fallbac
 
         lat, lon = coords[0], coords[1]
         activity_date = activity["start_date_local"].date()
+        primary_kwargs = {"retries": 1, "timeout": 5} if fallback_client else {}
         try:
-            historical_weather = openmeteo_client.get_historical_weather(lat, lon, activity_date)
+            historical_weather = openmeteo_client.get_historical_weather(lat, lon, activity_date, **primary_kwargs)
         except ValueError:
             continue
         except Exception:

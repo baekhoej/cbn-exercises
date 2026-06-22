@@ -8,8 +8,9 @@ A Python app that fetches data from external APIs, processes it, and presents it
 PythonApp/
 ├── app/
 │   ├── apiclients/
-│   │   ├── openmeteo.py    # Open-Meteo weather forecast client
-│   │   └── strava.py       # Strava activities client (OAuth2)
+│   │   ├── openmeteo.py       # Open-Meteo weather forecast client
+│   │   ├── visualcrossing.py  # Visual Crossing historical weather client (fallback)
+│   │   └── strava.py          # Strava activities client (OAuth2)
 │   ├── processing/
 │   │   └── pipeline.py     # Transforms raw API data into DataFrames
 │   └── dashboard/
@@ -78,11 +79,24 @@ Produces a self-contained `dashboard.html` with client-side interactivity (zoom,
 .venv/bin/pytest tests/ -v
 ```
 
+## Published dashboard
+
+The dashboard is automatically published to GitHub Pages:
+
+**https://baekhoej.github.io/cbn-exercises/**
+
+It is updated by a GitHub Actions workflow (`.github/workflows/publish.yml`) that can be triggered manually from the [Actions tab](https://github.com/baekhoej/cbn-exercises/actions/workflows/publish.yml) → **Run workflow**. A daily schedule can be enabled by adding a `schedule` trigger to the workflow file.
+
+The workflow requires three repository secrets (Settings → Secrets → Actions):
+- `STRAVA_CLIENT_ID`, `STRAVA_CLIENT_SECRET`, `STRAVA_REFRESH_TOKEN` — Strava OAuth credentials
+- `VISUAL_CROSSING_API_KEY` — used as a weather fallback if Open-Meteo is unreachable
+
 ## Data sources
 
 | Source | Auth | What it provides |
 |---|---|---|
-| [Open-Meteo](https://open-meteo.com/) | None (free, no key required) | Hourly weather forecast |
+| [Open-Meteo](https://open-meteo.com/) | None (free, no key required) | Hourly weather forecast and recent historical weather |
+| [Visual Crossing](https://www.visualcrossing.com/) | API key (free tier: 1000 records/day) | Historical weather fallback |
 | [Strava](https://developers.strava.com/) | OAuth2 refresh token | Activity list (distance, duration, elevation) |
 
 
