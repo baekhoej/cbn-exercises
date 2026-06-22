@@ -18,7 +18,7 @@ class OpenMeteoClient:
         response.raise_for_status()
         return response.json()
 
-    def get_historical_weather(self, latitude: float, longitude: float, date: datetime.date, retries: int = 3) -> dict:
+    def get_historical_weather(self, latitude: float, longitude: float, date: datetime.date, retries: int = 3, timeout: int = 30) -> dict:
         days_ago = (datetime.date.today() - date).days
         if days_ago > MAX_PAST_DAYS:
             raise ValueError(f"Date {date} is {days_ago} days ago, beyond the {MAX_PAST_DAYS}-day limit")
@@ -33,7 +33,7 @@ class OpenMeteoClient:
         last_error: Exception
         for attempt in range(retries):
             try:
-                response = requests.get(self.BASE_URL, params=params, timeout=30)
+                response = requests.get(self.BASE_URL, params=params, timeout=timeout)
                 response.raise_for_status()
                 return response.json()
             except Exception as error:
